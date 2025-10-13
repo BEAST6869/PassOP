@@ -1,60 +1,53 @@
-// backend/routes/auth.js
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
-function sendToken(res, user) {
-  const token = jwt.sign({ sub: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
-}
+const { sendTokenResponse } = require('../utils/authUtils'); // Import the utility
 
 router.post('/signup', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email & password required' });
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ error: 'User already exists' });
-    const hash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, passwordHash: hash });
-    sendToken(res, user);
-    res.json({ ok: true, user: { id: user._id, email: user.email } });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(409).json({ error: 'User with this email already exists' }); // 409 Conflict is more specific
+
+        const passwordHash = await bcrypt.hash(password, 12);
+        const user = await User.create({ email, passwordHash });
+        sendTokenResponse(res, user); // Use the utility
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error during signup' });
+    }
 });
 
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user || !user.passwordHash) return res.status(400).json({ error: 'Invalid credentials' });
-    const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) return res.status(400).json({ error: 'Invalid credentials' });
-    sendToken(res, user);
-    res.json({ ok: true, user: { id: user._id, email: user.email } });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Server error' }); }
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+
+        const user = await User.findOne({ email });
+        if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' }); // 401 Unauthorized
+
+        const match = await bcrypt.compare(password, user.passwordHash);
+        if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+
+        sendTokenResponse(res, user); // Use the utility
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error during login' });
+    }
 });
 
 router.post('/logout', (req, res) => {
-  res.clearCookie('token', { httpOnly: true, sameSite: 'lax' });
-  res.json({ ok: true });
+    res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
+    res.json({ ok: true, message: 'Logged out successfully' });
 });
 
-router.get('/me', async (req, res) => {
-  try {
-    const token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    if (!token) return res.json({ user: null });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.sub).select('-passwordHash');
-    res.json({ user });
-  } catch (err) {
-    res.json({ user: null });
-  }
+// Renamed for clarity. This route checks the current session based on the token.
+router.get('/session', require('../middleware/auth'), (req, res) => {
+    // The requireAuth middleware already attached the user
+    res.json({ user: { id: req.user._id, email: req.user.email } });
 });
 
 module.exports = router;
