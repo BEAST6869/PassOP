@@ -4,7 +4,6 @@ const passport = require('passport');
 const { sendTokenResponse } = require('../utils/authUtils');
 
 // This route starts the Google login process.
-// The 'prompt: select_account' option ensures the user can always choose which Google account to use.
 router.get('/google', passport.authenticate('google', {
     scope: ['profile', 'email'],
     prompt: 'select_account'
@@ -17,7 +16,17 @@ router.get('/google/callback',
         failureRedirect: `${process.env.FRONTEND_URL}/?auth=fail`
     }),
     (req, res) => {
-        // If successful, create a JWT, set it as a cookie, and redirect to the frontend.
+        // --- THIS IS THE DEBUGGING BLOCK ---
+        // It will print the values of your environment variables to the Render logs
+        // so we can see what the live server is actually using.
+        console.log("==============================================");
+        console.log(">>> OAUTH CALLBACK HANDLER TRIGGERED <<<");
+        console.log("Value of process.env.API_BASE_URL:", process.env.API_BASE_URL);
+        console.log("Value of process.env.FRONTEND_URL:", process.env.FRONTEND_URL);
+        console.log("==============================================");
+        // ------------------------------------
+
+        // This line remains the same.
         sendTokenResponse(res, req.user, process.env.FRONTEND_URL || 'http://localhost:5173');
     }
 );
