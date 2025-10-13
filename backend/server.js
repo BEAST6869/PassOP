@@ -28,18 +28,7 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true
 }));
-app.get('/api/debug-env', (req, res) => {
-    console.log("=================================");
-    console.log(">>> /api/debug-env route was hit <<<");
-    console.log("API_BASE_URL:", process.env.API_BASE_URL);
-    console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
-    console.log("=================================");
-    res.status(200).json({
-        message: "Server environment variables",
-        apiBaseUrl: process.env.API_BASE_URL || "--- NOT SET ---",
-        frontendUrl: process.env.FRONTEND_URL || "--- NOT SET ---",
-    });
-});
+
 // --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/secrets', secretRoutes);
