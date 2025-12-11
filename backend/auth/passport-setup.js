@@ -14,19 +14,15 @@ async (accessToken, refreshToken, profile, done) => {
             return done(new Error("No email found from Google profile."), null);
         }
 
-        // Find user by Google ID first
         let user = await User.findOne({ 'oauth.providerId': profile.id });
 
         if (!user) {
-            // If not found, find by email to link accounts
             user = await User.findOne({ email });
 
             if (user) {
-                // Link Google account to existing local user
                 user.oauth = { provider: 'google', providerId: profile.id };
                 await user.save();
             } else {
-                // Or create a brand new user
                 user = await User.create({
                     email,
                     oauth: { provider: 'google', providerId: profile.id }
@@ -38,4 +34,3 @@ async (accessToken, refreshToken, profile, done) => {
         return done(err);
     }
 }));
-

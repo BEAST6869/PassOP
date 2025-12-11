@@ -7,12 +7,9 @@ const sendTokenResponse = (res, user, redirectUrl = null) => {
 
   res.cookie('token', token, {
     httpOnly: true,
-    secure: isProduction, // Cookie is only sent over HTTPS in production
-    // This is the crucial change:
-    // 'lax' is fine for development on localhost
-    // 'none' is required for cross-site cookies in production
-    sameSite: isProduction ? 'none' : 'lax', 
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000
   });
 
   if (redirectUrl) {

@@ -1,4 +1,3 @@
-// backend/models/Secret.js
 const mongoose = require('mongoose');
 
 const SecretSchema = new mongoose.Schema({

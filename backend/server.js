@@ -7,8 +7,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 
-// --- Pre-loading & Setup ---
-require('./models/User'); // Ensure models are registered before use
+require('./models/User');
 require('./models/Secret');
 require('./auth/passport-setup');
 const authRoutes = require('./routes/auth');
@@ -17,8 +16,7 @@ const oauthRoutes = require('./routes/oauth');
 
 const app = express();
 
-// --- Middleware ---
-app.set('trust proxy', 1); // Important for rate-limiting and secure cookies behind a proxy
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -29,14 +27,12 @@ app.use(cors({
     credentials: true
 }));
 
-// --- Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/secrets', secretRoutes);
-app.use('/auth', oauthRoutes); // Google OAuth routes
+app.use('/auth', oauthRoutes);
 
 app.get('/api', (req, res) => res.send('Password Manager API is running.'));
 
-// --- Database & Server Start ---
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         const PORT = process.env.PORT || 3000;
