@@ -1,19 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import api from '../api'; // Import our new api client
-import { encrypt, decrypt } from '../utils/crypto'; // Import our crypto functions
+import api from '../api';
+import { encrypt, decrypt } from '../utils/crypto';
 
 const Manager = () => {
     const [form, setForm] = useState({ site: "", username: "", password: "", _id: null });
     const [secrets, setSecrets] = useState([]);
-    const [masterKey, setMasterKey] = useState(""); // Key for encryption/decryption
+    const [masterKey, setMasterKey] = useState("");
 
     const passwordRef = useRef();
     const eyeRef = useRef();
 
     useEffect(() => {
-        // Prompt for master password once when the component loads
         const key = prompt("Please enter your Master Password. This is used to encrypt/decrypt your data and is never stored.");
         if (key) {
             setMasterKey(key);
@@ -21,12 +20,10 @@ const Manager = () => {
     }, []);
 
     useEffect(() => {
-        // Fetch secrets only if the master key is set
         if (masterKey) {
             const getSecrets = async () => {
                 try {
                     const { data } = await api.get('/api/secrets');
-                    // Decrypt each secret's password before setting state
                     const decryptedSecrets = data.map(secret => {
                         try {
                             const decryptedPassword = decrypt(secret, masterKey);
@@ -45,7 +42,7 @@ const Manager = () => {
             };
             getSecrets();
         }
-    }, [masterKey]); // Re-run if masterKey changes
+    }, [masterKey]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -67,22 +64,19 @@ const Manager = () => {
         }
 
         try {
-            // Encrypt the password before sending it to the backend
             const encryptedData = encrypt(form.password, masterKey);
             const payload = {
                 site: form.site,
                 username: form.username,
-                ...encryptedData, // includes ciphertext, iv, salt
+                ...encryptedData,
             };
 
             let response;
             if (form._id) {
-                // Update existing secret
                 response = await api.put(`/api/secrets/${form._id}`, payload);
                 setSecrets(secrets.map(s => (s._id === form._id ? { ...response.data, password: form.password } : s)));
                 toast.success('Password updated!');
             } else {
-                // Create new secret
                 response = await api.post('/api/secrets', payload);
                 setSecrets([...secrets, { ...response.data, password: form.password }]);
                 toast.success('Password saved!');
@@ -135,7 +129,6 @@ const Manager = () => {
                 </h1>
                 <p className='text-base sm:text-lg text-center text-black font-bold'>Your own Password Manager</p>
 
-                {/* Form Section */}
                 <form onSubmit={handleSubmit} className='flex flex-col p-2 sm:p-4 gap-4 sm:gap-5'>
                     <input value={form.site} onChange={handleChange} placeholder='Enter website URL' className='bg-white border border-purple-900 rounded-full px-3 py-1' type="text" name="site" />
                     <div className='flex flex-col sm:flex-row gap-3 sm:gap-5 w-full justify-between'>
@@ -151,7 +144,6 @@ const Manager = () => {
                     </button>
                 </form>
 
-                {/* Passwords Table Section */}
                 <div className="passwords overflow-x-auto">
                     <h2 className='font-bold text-xl sm:text-2xl py-4'>Your Passwords</h2>
                     {secrets.length === 0 && <div> No passwords to show</div>}

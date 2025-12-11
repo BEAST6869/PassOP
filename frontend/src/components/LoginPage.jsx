@@ -1,7 +1,6 @@
 import React from 'react';
 
 const LoginPage = () => {
-  // Construct the full backend URL using the environment variable
   const googleLoginUrl = `${import.meta.env.VITE_API_URL}/auth/google`;
 
   return (
@@ -12,8 +11,7 @@ const LoginPage = () => {
       <p className="mt-4 text-lg text-slate-600">
         Please log in to manage your passwords
       </p>
-      
-      {/* Update the href to use the dynamic URL */}
+
       <a
         href={googleLoginUrl}
         className="mt-8 px-6 py-3 bg-purple-600 text-white font-bold rounded-full shadow-lg hover:bg-purple-700 transition-transform transform hover:scale-105"

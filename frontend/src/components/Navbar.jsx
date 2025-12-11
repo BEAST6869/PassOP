@@ -1,10 +1,7 @@
 import React from 'react';
 
-// Accept 'user' and 'onLogout' as props
 const Navbar = ({ user, onLogout }) => {
 
-  // Dynamically create the login URL from the environment variable.
-  // This will be your Render URL in production and localhost in development.
   const googleLoginUrl = `${import.meta.env.VITE_API_URL}/auth/google`;
 
   const renderAuthButton = () => {
@@ -13,13 +10,11 @@ const Navbar = ({ user, onLogout }) => {
         return null;
       case false:
         return (
-          // Use the dynamic googleLoginUrl variable here
           <a href={googleLoginUrl} className='border border-black-700 px-4 py-1 rounded-full font-semibold hover:bg-purple-700 hover:text-white transition duration-300 flex items-center gap-2 cursor-pointer mx-2'>
             Login with Google
           </a>
         );
       default:
-        // The logout button correctly calls the onLogout function
         return (
           <button onClick={onLogout} className='border border-black-700 px-4 py-1 rounded-full font-semibold hover:bg-purple-700 hover:text-white transition duration-300 flex items-center gap-2 cursor-pointer mx-2'>
             Logout

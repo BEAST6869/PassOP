@@ -1,9 +1,8 @@
 import CryptoJS from 'crypto-js';
 
 const ITERATIONS = 100000;
-const KEY_SIZE = 256 / 32; // 256 bits
+const KEY_SIZE = 256 / 32;
 
-// Derives a strong encryption key from a master password and a salt.
 export const deriveKey = (masterPassword, salt) => {
   return CryptoJS.PBKDF2(masterPassword, salt, {
     keySize: KEY_SIZE,
@@ -11,7 +10,6 @@ export const deriveKey = (masterPassword, salt) => {
   }).toString();
 };
 
-// Encrypts data using the derived key.
 export const encrypt = (data, key) => {
   const salt = CryptoJS.lib.WordArray.random(128 / 8).toString();
   const iv = CryptoJS.lib.WordArray.random(128 / 8).toString();
@@ -28,7 +26,6 @@ export const encrypt = (data, key) => {
   };
 };
 
-// Decrypts data using the derived key.
 export const decrypt = (encryptedData, key) => {
   const { ciphertext, salt, iv } = encryptedData;
   const derivedKey = deriveKey(key, salt);
